@@ -7,16 +7,20 @@ import { Name, Namer, funPrefixNamer } from "../Naming";
 import { Sourcelike, modifySource } from "../Source";
 import {
     splitIntoWords,
+    // isLetterOrUnderscoreOrDigit,
     combineWords,
     firstUpperWordStyle,
     allUpperWordStyle,
     allLowerWordStyle,
     camelCase,
     utf16LegalizeCharacters,
+    // legalizeCharacters,
     stringEscape,
     addPrefixIfNecessary,
     repeatString,
-    fastIsUpperCase
+    fastIsUpperCase,
+    isAscii,
+    isLetterOrUnderscore
 } from "../support/Strings";
 import { ConvenienceRenderer, ForbiddenWordsInfo } from "../ConvenienceRenderer";
 import { StringOption, BooleanOption, EnumOption, Option, getOptionValues, OptionValues } from "../RendererOptions";
@@ -30,6 +34,22 @@ export type OutputFeatures = { interface: boolean; implementation: boolean };
 
 const DEBUG = false;
 const DEFAULT_CLASS_PREFIX = "QT";
+
+// function isAsciiLetterOrUnderscoreOrDigit(codePoint: number): boolean {
+//     if (!isAscii(codePoint)) {
+//         return false;
+//     }
+//     return isLetterOrUnderscoreOrDigit(codePoint);
+// }
+
+function isAsciiLetterOrUnderscore(codePoint: number): boolean {
+    if (!isAscii(codePoint)) {
+        return false;
+    }
+    return isLetterOrUnderscore(codePoint);
+}
+
+// const legalizeName = legalizeCharacters(isAsciiLetterOrUnderscoreOrDigit);
 
 export const objcOptions = {
     features: new EnumOption("features", "Interface and implementation", [
@@ -81,22 +101,22 @@ function typeNameStyle(prefix: string, original: string): string {
     return addPrefixIfNecessary(prefix, result);
 }
 
-function propertyNameStyle(original: string, isBool = false): string {
+function propertyNameStyle(original: string, isBool = true): string {
     // Objective-C developers are uncomfortable with property "id"
     // so we use an alternate name in this special case.
-    if (original === "id") {
-        original = "identifier";
-    }
+    // if (original === "id") {
+    //     original = "identifier";
+    // }
 
     let words = splitIntoWords(original);
 
-    if (isBool) {
-        if (words.length === 0) {
-            words = [{ word: "flag", isAcronym: false }];
-        } else if (!words[0].isAcronym && booleanPrefixes.indexOf(words[0].word) < 0) {
-            words = [{ word: "is", isAcronym: false }, ...words];
-        }
-    }
+    // if (isBool) {
+    //     if (words.length === 0) {
+    //         words = [{ word: "flag", isAcronym: false }];
+    //     } else if (!words[0].isAcronym && booleanPrefixes.indexOf(words[0].word) < 0) {
+    //         words = [{ word: "is", isAcronym: false }, ...words];
+    //     }
+    // }
 
     // Properties cannot even begin with any of the forbidden names
     // For example, properies named new* are treated differently by ARC
@@ -104,16 +124,19 @@ function propertyNameStyle(original: string, isBool = false): string {
         words = [{ word: "the", isAcronym: false }, ...words];
     }
 
-    return combineWords(
+    const combined = combineWords(
         words,
         legalizeName,
         allLowerWordStyle,
-        firstUpperWordStyle,
         allLowerWordStyle,
-        allUpperWordStyle,
-        "",
-        isStartCharacter
+        allLowerWordStyle,
+        allLowerWordStyle,
+        "_",                        //单词衔接分隔符，驼峰下默认为空""，下划线命名下为"_"
+        isAsciiLetterOrUnderscore
     );
+    console.log("oc_combineWords is:", combined);
+    return combined === "_" ? "_underscore" : combined;
+
 }
 
 const keywords = [

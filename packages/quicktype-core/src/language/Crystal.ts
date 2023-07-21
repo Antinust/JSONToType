@@ -210,7 +210,7 @@ function crystalStyle(original: string, isSnakeCase: boolean): string {
         isSnakeCase ? "_" : "",
         isAsciiLetterOrUnderscore
     );
-
+    console.log("crystal_combineWords is:", combined);
     return combined === "_" ? "_underscore" : combined;
 }
 
