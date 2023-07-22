@@ -110,13 +110,13 @@ function propertyNameStyle(original: string, isBool = true): string {
 
     let words = splitIntoWords(original);
 
-    // if (isBool) {
-    //     if (words.length === 0) {
-    //         words = [{ word: "flag", isAcronym: false }];
-    //     } else if (!words[0].isAcronym && booleanPrefixes.indexOf(words[0].word) < 0) {
-    //         words = [{ word: "is", isAcronym: false }, ...words];
-    //     }
-    // }
+    if (isBool) {
+        if (words.length === 0) {
+            words = [{ word: "flag", isAcronym: false }];
+        } else if (!words[0].isAcronym && booleanPrefixes.indexOf(words[0].word) < 0) {
+            words = [{ word: "is", isAcronym: false }, ...words];
+        }
+    }
 
     // Properties cannot even begin with any of the forbidden names
     // For example, properies named new* are treated differently by ARC
